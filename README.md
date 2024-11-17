@@ -1,2 +1,2 @@
-# TermTicket
-Command-line ticketing system
+# TermTix
+A ticketing system for the command-line
