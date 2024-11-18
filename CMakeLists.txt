@@ -11,7 +11,6 @@ add_executable(TermTicket
         src/Ticket.h
         src/TicketManager.cpp
         src/TicketManager.h
-        src/DatabaseConnection.h
 
         ### Application ###
 

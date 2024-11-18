@@ -9,24 +9,25 @@
 
 class TicketManager {
 public:
-    TicketManager();
+    TicketManager(std::string username, std::string password, std::string host, int port);
     ~TicketManager();
 
 private:
     pqxx::connection *m_DatabaseConnection;
 
 public:
-    void setUsername(std::string username);
-    void setPassword(std::string password);
-    void setHostname(std::string hostname);
-    void setPort(int port);
-
+    // Tickets
     bool addTicket(Ticket ticket);
-    bool deleteTicket(int ID);
-    bool editTicket(int ID);
-    bool mergeTicket(int sourceID, int targetID);
-    Ticket getTicket(int ID);
+    bool deleteTicket(int ticketID);
+    bool editTicket(int ticketID, Ticket ticket);
+    bool mergeTicket(int sourceTicketID, int targetTicketID);
+    Ticket getTicket(int ticketID);
     std::vector<Ticket> getTickets();
 
-
+    // Comments
+    bool addComment(int ticketID, TicketComment comment);
+    bool deleteComment(int commentID);
+    bool editComment(int commentID, TicketComment comment);
+    TicketComment getComment(int commentID);
+    std::vector<TicketComment> getComments(int ticketID);
 };
