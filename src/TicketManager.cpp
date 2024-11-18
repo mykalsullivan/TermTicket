@@ -70,9 +70,9 @@ std::vector<Ticket> TicketManager::getTickets()
         ticket.title = row["ticket_title"].c_str();
         ticket.status = row["ticket_status"].c_str();
         ticket.priority = row["ticket_priority"].c_str();
-        ticket.createdTimestamp = row["ticket_created_timestamp"].c_str();
-        ticket.lastModifiedTimestamp = row["ticket_last_modified_timestamp"].c_str();
-        ticket.assignedUser = row["ticket_assigned_user"].c_str();
+        ticket.createdAt = row["ticket_created_at"].c_str();
+        ticket.lastModifiedAt = row["ticket_last_modified_at"].c_str();
+        ticket.assignedTo = row["ticket_assigned_to"].c_str();
         tickets.emplace_back(ticket);
     }
     return tickets;
@@ -115,8 +115,8 @@ std::vector<TicketComment> TicketManager::getComments(int ticketID)
         comment.commentID = row["comment_id"].as<int>();
         comment.commentID = row["comment_id"].as<int>();
         comment.text = row["comment_text"].c_str();
-        comment.createdTimestamp = row["comment_created_timestamp"].c_str();
-        comment.lastModifiedTimestamp = row["comment_last_modified_timestamp"].c_str();
+        comment.createdAt = row["comment_created_at"].c_str();
+        comment.lastModifiedAt = row["comment_last_modified_at"].c_str();
         comment.sender = row["comment_sender"].c_str();
         comments.emplace_back(comment);
     }

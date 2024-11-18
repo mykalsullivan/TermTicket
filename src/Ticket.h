@@ -10,16 +10,16 @@ struct Ticket {
     std::string title;
     std::string status;
     std::string priority;
-    std::string createdTimestamp;
-    std::string lastModifiedTimestamp;
-    std::string assignedUser;
+    std::string createdAt;
+    std::string lastModifiedAt;
+    std::string assignedTo;
 };
 
 struct TicketComment {
     int ticketID;
     int commentID;
     std::string text;
-    std::string createdTimestamp;
-    std::string lastModifiedTimestamp;
+    std::string createdAt;
+    std::string lastModifiedAt;
     std::string sender;
 };

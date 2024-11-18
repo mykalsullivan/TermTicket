@@ -5,7 +5,6 @@
 #pragma once
 #include <string>
 #include <cassert>
-#include <pqxx/pqxx>
 
 // Forward declaration(s)
 class TicketManager;
@@ -27,7 +26,7 @@ public:
     ~Client();
 
 private:
-    bool m_Running = false;
+    bool m_Running;
     CommandLineArgs m_Args;
     TicketManager *m_TicketManager;
 
@@ -35,6 +34,16 @@ public:
     int run();
     void exit();
 
+    void addTicket();
+    void deleteTicket();
+    void modifyTicket();
+    void mergeTicket();
+
+    void viewTicket();
+    void viewAssignedTickets();
+    void viewAllTickets();
+
 private:
-    TicketManager *setupTicketManager();
+    TicketManager *setupTicketManager() const;
+    void handleInput(const std::string& input);
 };
