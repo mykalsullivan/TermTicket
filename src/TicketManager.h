@@ -9,7 +9,7 @@
 
 class TicketManager {
 public:
-    TicketManager(std::string username, std::string password, std::string host, int port);
+    TicketManager(const std::string& username, const std::string& password, const std::string& host, int port);
     ~TicketManager();
 
 private:
@@ -17,17 +17,23 @@ private:
 
 public:
     // Tickets
-    bool addTicket(Ticket ticket);
+    bool addTicket(const Ticket& ticket);
     bool deleteTicket(int ticketID);
-    bool editTicket(int ticketID, Ticket ticket);
+    bool editTicket(int ticketID, const Ticket& ticket);
     bool mergeTicket(int sourceTicketID, int targetTicketID);
-    Ticket getTicket(int ticketID);
+    [[nodiscard]] Ticket getTicket(int ticketID);
     std::vector<Ticket> getTickets();
 
     // Comments
-    bool addComment(int ticketID, TicketComment comment);
+    bool addComment(int ticketID, const TicketComment& comment);
     bool deleteComment(int commentID);
-    bool editComment(int commentID, TicketComment comment);
+    bool editComment(int commentID, const TicketComment& comment);
     TicketComment getComment(int commentID);
     std::vector<TicketComment> getComments(int ticketID);
+
+    // Debug
+    bool resetDatabase() const;
+
+private:
+    [[nodiscard]] static std::string getQueryFromFile(const std::string &filename) ;
 };

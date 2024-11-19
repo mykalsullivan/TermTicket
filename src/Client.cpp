@@ -41,7 +41,8 @@ TicketManager *Client::setupTicketManager() const
     std::string hostname;
     int port = -1;
 
-    while (int c = getopt(m_Args.argc, m_Args.argv, ":u:p:H:P:h") != -1)
+    int c;
+    while ((c = getopt(m_Args.argc, m_Args.argv, ":u:p:H:P:h")) != -1)
         switch (c)
         {
             case 'u':
@@ -114,6 +115,8 @@ void Client::handleInput(const std::string& input)
         viewAssignedTickets();
     else if (input == "view all")
         viewAllTickets();
+    else if (input == "reset db")
+        resetDatabase();
     else
         std::cerr << "Unrecognized input \"" << input << "\"\n";
 }
@@ -135,9 +138,32 @@ int Client::run()
     return 0;
 }
 
+void Client::exit()
+{
+    m_Running = false;
+}
+
 void Client::addTicket()
 {
+    Ticket ticket;
+    ticket.author = "msullivan"; // Temp
 
+    std::cout << "Title [blank to cancel]: ";
+    std::getline(std::cin, ticket.title);
+    if (ticket.title.empty()) return;
+
+    std::cout << "Status [blank to cancel]: ";
+    std::getline(std::cin, ticket.status);
+    if (ticket.title.empty()) return;
+
+    std::cout << "Priority [blank to cancel]: ";
+    std::getline(std::cin, ticket.priority);
+    if (ticket.priority.empty()) return;
+
+    if (m_TicketManager->addTicket(ticket))
+        std::cout << "Successfully created ticket\n";
+    else
+        std::cerr << "Failed to create ticket\n";
 }
 
 void Client::deleteTicket()
@@ -173,15 +199,19 @@ void Client::viewAllTickets()
         std::cout << "There are no tickets available to view\n";
 
     for (const auto &ticket : tickets)
-        std::cout << "#" << ticket.ticketID << ": \"" << ticket.title << "\"\n"
+        std::cout << ticket.ticketID << ": \"" << ticket.title << "\"\n"
+                  << " -- Author: " << ticket.author << '\n'
                   << " -- Created: " << ticket.createdAt << '\n'
                   << " -- Modified: " << ticket.lastUpdatedAt << '\n'
-                  << " -- Assigned to: \"" << ticket.assignedTo << "\"\n"
+                  << " -- Assigned to: " << (ticket.assignedTo) << '\n'
                   << " -- Priority: \"" << ticket.priority << "\"\n"
                   << " -- Status: \"" << ticket.status << "\"\n\n";
 }
 
-void Client::exit()
+void Client::resetDatabase()
 {
-    m_Running = false;
+    if (m_TicketManager->resetDatabase())
+        std::cout << "Successfully reset the ticket database\n";
+    else
+        std::cerr << "Failed to reset the ticket database\n";
 }

@@ -1,3 +1,1 @@
 * CLI arguments do not work properly and just display the help message.
-* The program needs a way to store connection info for the last connected server. If the program fails to connect to the
-  database, then it should prompt the user to connect to another server.

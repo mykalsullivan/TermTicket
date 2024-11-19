@@ -38,10 +38,17 @@ public:
     void deleteTicket();
     void modifyTicket();
     void mergeTicket();
+    void takeTicket();
+    void assignTicketToUser();
+    void assignTicketToTeam();
+    void setDeadline();
+    void setSLA();
 
     void viewTicket();
     void viewAssignedTickets();
     void viewAllTickets();
+
+    void resetDatabase();
 
 private:
     TicketManager *setupTicketManager() const;

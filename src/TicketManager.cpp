@@ -4,8 +4,10 @@
 
 #include "TicketManager.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
-TicketManager::TicketManager(std::string username, std::string password, std::string host, int port)
+TicketManager::TicketManager(const std::string &username, const std::string &password, const std::string &host, int port)
 {
     std::string connectionString = "dbname=term_ticket"
                                    " user=" + username +
@@ -26,9 +28,27 @@ TicketManager::~TicketManager()
     m_DatabaseConnection->disconnect();
 }
 
-bool TicketManager::addTicket(Ticket ticket)
+bool TicketManager::addTicket(const Ticket &ticket)
 {
-
+    pqxx::work work(*m_DatabaseConnection);
+    std::string query = "INSERT INTO tickets "
+                        "("
+                            "title, author, status, priority, assigned_to"
+                        ") "
+                        "VALUES "
+                        "("
+                            "$1, $2, $3, $4, $5"
+                        ");";
+    try
+    {
+        work.exec_params(query, ticket.title, ticket.author, ticket.status, ticket.priority, "NULL");
+        work.commit();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what();
+        return false;
+    }
     return true;
 }
 
@@ -38,7 +58,7 @@ bool TicketManager::deleteTicket(int ID)
     return true;
 }
 
-bool TicketManager::editTicket(int ID, Ticket ticket)
+bool TicketManager::editTicket(int ID, const Ticket &ticket)
 {
 
     return true;
@@ -59,27 +79,45 @@ Ticket TicketManager::getTicket(int ID)
 std::vector<Ticket> TicketManager::getTickets()
 {
     pqxx::work work(*m_DatabaseConnection);
-    pqxx::result result = work.exec("SELECT * FROM tickets;");
+    std::string query = "SELECT * FROM tickets;";
+    pqxx::result result;
+    try
+    {
+        result = work.exec(query);
+        work.commit();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what();
+        return {};
+    }
 
     std::vector<Ticket> tickets;
 
     for (const auto &row : result)
     {
-        Ticket ticket;
-        ticket.ticketID = row["id"].as<int>();
-        ticket.author = row["author"].c_str();
-        ticket.createdAt = row["created_at"].c_str();
-        ticket.lastUpdatedAt = row["last_updated_at"].c_str();
-        ticket.title = row["title"].c_str();
-        ticket.status = row["status"].c_str();
-        ticket.priority = row["priority"].c_str();
-        ticket.assignedTo = row["assigned_to"].c_str();
-        tickets.emplace_back(ticket);
+        try
+        {
+            Ticket ticket;
+            ticket.ticketID = row["ticket_id"].as<int>();
+            ticket.createdAt = row["created_at"].as<std::string>();
+            ticket.lastUpdatedAt = row["last_updated_at"].as<std::string>();
+            ticket.author = row["author"].as<std::string>();
+            ticket.title = row["title"].as<std::string>();
+            ticket.status = row["status"].as<std::string>();
+            ticket.priority = row["priority"].as<std::string>();
+            ticket.assignedTo = row["assigned_to"].as<std::string>();
+            tickets.emplace_back(ticket);
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what();
+        }
     }
     return tickets;
 }
 
-bool TicketManager::addComment(int ticketID, TicketComment comment)
+bool TicketManager::addComment(int ticketID, const TicketComment &comment)
 {
 
     return true;
@@ -91,7 +129,7 @@ bool TicketManager::deleteComment(int commentID)
     return true;
 }
 
-bool TicketManager::editComment(int commentID, TicketComment comment)
+bool TicketManager::editComment(int commentID, const TicketComment &comment)
 {
 
     return true;
@@ -106,7 +144,8 @@ TicketComment TicketManager::getComment(int commentID)
 std::vector<TicketComment> TicketManager::getComments(int ticketID)
 {
     pqxx::work work(*m_DatabaseConnection);
-    pqxx::result result = work.exec("SELECT * FROM comments WHERE ticket_id = " + std::to_string(ticketID) + ';');
+    std::string query = "SELECT * FROM comments WHERE ticket_id = " + std::to_string(ticketID) + ';';
+    pqxx::result result = work.exec(query);
 
     std::vector<TicketComment> comments;
 
@@ -122,4 +161,61 @@ std::vector<TicketComment> TicketManager::getComments(int ticketID)
         comments.emplace_back(comment);
     }
     return comments;
+}
+
+// This will need better exception handling
+bool TicketManager::resetDatabase() const
+{
+    pqxx::work work(*m_DatabaseConnection);
+    pqxx::result result;
+    std::string query;
+    try
+    {
+        // 1. Drop both the tickets and comments table if they exist
+        query = getQueryFromFile("/home/msullivan/Development/GitHub/TermTix/sql/DropTables.sql");
+        work.exec(query);
+
+        // 2. Re-create the tickets table
+        query = getQueryFromFile("/home/msullivan/Development/GitHub/TermTix/sql/CreateTicketsTable.sql");
+        if (query.empty())
+        {
+            std::cerr << "Failed to create tickets table\n";
+            return false;
+        }
+        work.exec(query);
+
+        // 3. Re-create the comments table
+        query = getQueryFromFile("/home/msullivan/Development/GitHub/TermTix/sql/CreateCommentsTable.sql");
+        if (query.empty())
+        {
+            std::cerr << "Failed to create comments table\n";
+            return false;
+        }
+        work.exec(query);
+
+        // 4. Commit changes to the database
+        work.commit();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what();
+        return false;
+    }
+    return true;
+}
+
+std::string TicketManager::getQueryFromFile(const std::string &filename)
+{
+    // 1. Open file
+    std::ifstream infile(filename);
+    if (!infile.is_open())
+    {
+        std::cerr << "Failed to open query file \"" << filename << "\"\n";
+        return "";
+    }
+
+    // 2. Read and return file contents
+    std::stringstream ss;
+    ss << infile.rdbuf();
+    return ss.str();
 }
