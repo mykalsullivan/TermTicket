@@ -7,19 +7,20 @@
 
 struct Ticket {
     int ticketID;
+    std::string author;
+    std::string createdAt;
+    std::string lastUpdatedAt;
     std::string title;
     std::string status;
     std::string priority;
-    std::string createdAt;
-    std::string lastModifiedAt;
     std::string assignedTo;
 };
 
 struct TicketComment {
     int ticketID;
     int commentID;
-    std::string text;
+    std::string author;
     std::string createdAt;
     std::string lastModifiedAt;
-    std::string sender;
+    std::string text;
 };

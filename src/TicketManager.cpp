@@ -66,13 +66,14 @@ std::vector<Ticket> TicketManager::getTickets()
     for (const auto &row : result)
     {
         Ticket ticket;
-        ticket.ticketID = row["ticket_id"].as<int>();
-        ticket.title = row["ticket_title"].c_str();
-        ticket.status = row["ticket_status"].c_str();
-        ticket.priority = row["ticket_priority"].c_str();
-        ticket.createdAt = row["ticket_created_at"].c_str();
-        ticket.lastModifiedAt = row["ticket_last_modified_at"].c_str();
-        ticket.assignedTo = row["ticket_assigned_to"].c_str();
+        ticket.ticketID = row["id"].as<int>();
+        ticket.author = row["author"].c_str();
+        ticket.createdAt = row["created_at"].c_str();
+        ticket.lastUpdatedAt = row["last_updated_at"].c_str();
+        ticket.title = row["title"].c_str();
+        ticket.status = row["status"].c_str();
+        ticket.priority = row["priority"].c_str();
+        ticket.assignedTo = row["assigned_to"].c_str();
         tickets.emplace_back(ticket);
     }
     return tickets;
@@ -113,11 +114,11 @@ std::vector<TicketComment> TicketManager::getComments(int ticketID)
     {
         TicketComment comment;
         comment.commentID = row["comment_id"].as<int>();
-        comment.commentID = row["comment_id"].as<int>();
-        comment.text = row["comment_text"].c_str();
+        comment.ticketID = row["ticket_id"].as<int>();
+        comment.author = row["comment_author"].c_str();
         comment.createdAt = row["comment_created_at"].c_str();
         comment.lastModifiedAt = row["comment_last_modified_at"].c_str();
-        comment.sender = row["comment_sender"].c_str();
+        comment.text = row["comment_text"].c_str();
         comments.emplace_back(comment);
     }
     return comments;
