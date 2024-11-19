@@ -3,13 +3,15 @@
 //
 
 #include "Client.h"
-#include "TicketManager.h"
+#include "DatabaseConnection.h"
 #include <iostream>
 #include <unistd.h>
 
 #define V_MAJ 0
 #define V_MIN 0
 #define V_REV 0
+
+#define NO_IMPL std::cout << "Not currently implemented\n";
 
 void printHelpMenu()
 {
@@ -34,10 +36,8 @@ Client::~Client()
     delete m_TicketManager;
 }
 
-TicketManager *Client::setupTicketManager() const
+DatabaseConnection *Client::setupTicketManager()
 {
-    std::string username;
-    std::string password;
     std::string hostname;
     int port = -1;
 
@@ -46,10 +46,10 @@ TicketManager *Client::setupTicketManager() const
         switch (c)
         {
             case 'u':
-                username = optarg;
+                m_Credentials.username = optarg;
             break;
             case 'p':
-                password = optarg;
+                m_Credentials.password = optarg;
             break;
             case 'H':
                 hostname = optarg;
@@ -67,17 +67,17 @@ TicketManager *Client::setupTicketManager() const
         }
 
     std::string input;
-    if (username.empty())
+    if (m_Credentials.username.empty())
     {
         std::cout << "Username: ";
         std::getline(std::cin, input);
-        username = input;
+        m_Credentials.username = input;
     }
-    if (password.empty())
+    if (m_Credentials.password.empty())
     {
         std::cout << "Password: ";
         std::getline(std::cin, input);
-        password = input;
+        m_Credentials.password = input;
     }
     if (hostname.empty())
     {
@@ -92,7 +92,7 @@ TicketManager *Client::setupTicketManager() const
         port = std::stoi(input);
     }
 
-    return new TicketManager(username, password, hostname, port);
+    return new DatabaseConnection(m_Credentials.username, m_Credentials.password, hostname, port);
 }
 
 void Client::handleInput(const std::string& input)
@@ -101,21 +101,51 @@ void Client::handleInput(const std::string& input)
         return;
     else if (input == "exit" || input == "stop" || input == "quit")
         exit();
-    else if (input == "add")
+    else if (input == "add ticket")
         addTicket();
-    else if (input == "delete")
+    else if (input == "delete ticket")
         deleteTicket();
-    else if (input == "modify")
+    else if (input == "modify ticket")
         modifyTicket();
-    else if (input == "merge")
+    else if (input == "merge ticket")
         mergeTicket();
-    else if (input == "view")
+    else if (input == "take ticket")
+        takeTicket();
+    else if (input == "assign ticket to user")
+        assignTicketToUser();
+    else if (input == "assign ticket to team")
+        assignTicketToTeam();
+    else if (input == "list assigned tickets")
+        listAssignedTickets();
+    else if (input == "list all tickets")
+        listAllTickets();
+    else if (input == "view ticket")
         viewTicket();
-    else if (input == "view assigned")
+    else if (input == "view assigned tickets")
         viewAssignedTickets();
-    else if (input == "view all")
+    else if (input == "view all tickets")
         viewAllTickets();
-    else if (input == "reset db")
+    else if (input == "assigned ticket count")
+        std::cout << std::to_string(getAssignedTicketCount()) << '\n';
+    else if (input == "overall ticket count")
+        std::cout << std::to_string(getOverallTicketCount()) << '\n';
+    else if (input == "login")
+        login();
+    else if (input == "logout")
+        logout();
+    else if (input == "register user")
+        registerUser();
+    else if (input == "delete user")
+        deleteUser();
+    else if (input == "modify user")
+        modifyUser();
+    else if (input == "set password")
+        setPassword();
+    else if (input == "list users")
+        listUsers();
+    else if (input == "view users")
+        viewUsers();
+    else if (input == "reset")
         resetDatabase();
     else
         std::cerr << "Unrecognized input \"" << input << "\"\n";
@@ -168,14 +198,14 @@ void Client::addTicket()
 
 void Client::deleteTicket()
 {
-    size_t ticketCount = listAllTickets();
-
+    size_t ticketCount = getOverallTicketCount();
     if (ticketCount <= 0)
     {
         std::cout << "There are no tickets to delete\n";
         return;
     }
 
+    listAllTickets();
     std::cout << "Target? [1-" << std::to_string(ticketCount) << "]: ";
 
     int selection = -1;
@@ -193,41 +223,52 @@ void Client::modifyTicket()
 
 void Client::mergeTicket()
 {
-
+    NO_IMPL;
 }
 
-size_t Client::listAllTickets()
+void Client::takeTicket()
+{
+    NO_IMPL;
+}
+
+void Client::assignTicketToUser()
+{
+    NO_IMPL;
+}
+
+void Client::assignTicketToTeam()
+{
+    NO_IMPL;
+}
+
+void Client::listAssignedTickets()
+{
+    NO_IMPL;
+}
+
+void Client::listAllTickets()
 {
     std::vector<Ticket> tickets = m_TicketManager->getTickets();
-
-    if (tickets.empty())
-        std::cout << "There are no tickets available to view\n";
-
     for (const auto &ticket : tickets)
         std::cout << ticket.ticketID << ": \"" << ticket.title << "\"\n";
-
-    return tickets.size();
 }
 
 
 void Client::viewTicket()
 {
-
+    NO_IMPL;
 }
 
-size_t Client::viewAssignedTickets()
+void Client::viewAssignedTickets()
 {
-    std::vector<Ticket> tickets;
-    return tickets.size();
+    // For now, this only shows all tickets. It should eventually query tickets assigned to the current user.
+    NO_IMPL;
+    listAllTickets();
 }
 
-size_t Client::viewAllTickets()
+void Client::viewAllTickets()
 {
     std::vector<Ticket> tickets = m_TicketManager->getTickets();
-
-    if (tickets.empty())
-        std::cout << "There are no tickets available to view\n";
-
     for (const auto &ticket : tickets)
         std::cout << ticket.ticketID << ": \"" << ticket.title << "\"\n"
                   << " -- Author: " << ticket.author << '\n'
@@ -236,8 +277,67 @@ size_t Client::viewAllTickets()
                   << " -- Assigned to: " << (ticket.assignedTo) << '\n'
                   << " -- Priority: \"" << ticket.priority << "\"\n"
                   << " -- Status: \"" << ticket.status << "\"\n\n";
-    return tickets.size();
 }
+
+size_t Client::getAssignedTicketCount()
+{
+    NO_IMPL;
+    return -1;
+}
+
+size_t Client::getOverallTicketCount()
+{
+    return m_TicketManager->getTickets().size();
+}
+
+void Client::login()
+{
+    NO_IMPL;
+}
+
+void Client::logout()
+{
+    NO_IMPL;
+}
+
+void Client::registerUser()
+{
+    NO_IMPL;
+}
+
+void Client::deleteUser()
+{
+    NO_IMPL;
+}
+
+void Client::modifyUser()
+{
+    NO_IMPL;
+}
+
+
+void Client::setPassword()
+{
+    NO_IMPL;
+}
+
+void Client::listUsers()
+{
+    NO_IMPL;
+}
+
+
+void Client::viewUsers()
+{
+    NO_IMPL;
+}
+
+size_t Client::getUserCount()
+{
+    NO_IMPL;
+    return -1;
+}
+
 
 void Client::resetDatabase()
 {

@@ -2,12 +2,12 @@
 // Created by msullivan on 11/18/24.
 //
 
-#include "TicketManager.h"
+#include "DatabaseConnection.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
-TicketManager::TicketManager(const std::string &username, const std::string &password, const std::string &host, int port)
+DatabaseConnection::DatabaseConnection(const std::string &username, const std::string &password, const std::string &host, int port)
 {
     std::string connectionString = "dbname=term_ticket"
                                    " user=" + username +
@@ -24,12 +24,12 @@ TicketManager::TicketManager(const std::string &username, const std::string &pas
     std::cout << "Successfully connected to ticket database\n";
 }
 
-TicketManager::~TicketManager()
+DatabaseConnection::~DatabaseConnection()
 {
     m_DatabaseConnection->disconnect();
 }
 
-bool TicketManager::addTicket(const Ticket &ticket)
+bool DatabaseConnection::addTicket(const Ticket &ticket)
 {
     pqxx::work work(*m_DatabaseConnection);
     std::string query = "INSERT INTO tickets "
@@ -53,7 +53,7 @@ bool TicketManager::addTicket(const Ticket &ticket)
     return true;
 }
 
-bool TicketManager::deleteTicket(int id) const
+bool DatabaseConnection::deleteTicket(int id) const
 {
     pqxx::work work(*m_DatabaseConnection);
     std::string query = "DELETE FROM tickets "
@@ -71,25 +71,25 @@ bool TicketManager::deleteTicket(int id) const
     return true;
 }
 
-bool TicketManager::editTicket(int ID, const Ticket &ticket)
+bool DatabaseConnection::editTicket(int ID, const Ticket &ticket)
 {
 
     return true;
 }
 
-bool TicketManager::mergeTicket(int sourceID, int targetID)
+bool DatabaseConnection::mergeTicket(int sourceID, int targetID)
 {
 
     return true;
 }
 
-Ticket TicketManager::getTicket(int ID)
+Ticket DatabaseConnection::getTicket(int ID)
 {
 
     return {};
 }
 
-std::vector<Ticket> TicketManager::getTickets()
+std::vector<Ticket> DatabaseConnection::getTickets()
 {
     pqxx::work work(*m_DatabaseConnection);
     std::string query = "SELECT * FROM tickets;";
@@ -130,41 +130,41 @@ std::vector<Ticket> TicketManager::getTickets()
     return tickets;
 }
 
-bool TicketManager::addComment(int ticketID, const TicketComment &comment)
+bool DatabaseConnection::addComment(int ticketID, const Comment &comment)
 {
 
     return true;
 }
 
-bool TicketManager::deleteComment(int commentID)
+bool DatabaseConnection::deleteComment(int commentID)
 {
     
     return true;
 }
 
-bool TicketManager::editComment(int commentID, const TicketComment &comment)
+bool DatabaseConnection::editComment(int commentID, const Comment &comment)
 {
 
     return true;
 }
 
-TicketComment TicketManager::getComment(int commentID)
+Comment DatabaseConnection::getComment(int commentID)
 {
 
     return {};
 }
 
-std::vector<TicketComment> TicketManager::getComments(int ticketID)
+std::vector<Comment> DatabaseConnection::getComments(int ticketID)
 {
     pqxx::work work(*m_DatabaseConnection);
     std::string query = "SELECT * FROM comments WHERE ticket_id = " + std::to_string(ticketID) + ';';
     pqxx::result result = work.exec(query);
 
-    std::vector<TicketComment> comments;
+    std::vector<Comment> comments;
 
     for (const auto &row : result)
     {
-        TicketComment comment;
+        Comment comment;
         comment.commentID = row["comment_id"].as<int>();
         comment.ticketID = row["ticket_id"].as<int>();
         comment.author = row["comment_author"].c_str();
@@ -177,36 +177,14 @@ std::vector<TicketComment> TicketManager::getComments(int ticketID)
 }
 
 // This will need better exception handling
-bool TicketManager::resetDatabase() const
+bool DatabaseConnection::resetDatabase() const
 {
     pqxx::work work(*m_DatabaseConnection);
-    pqxx::result result;
-    std::string query;
+
+    std::string query = getQueryFromFile("/home/msullivan/Development/GitHub/TermTix/sql/ResetDatabase.sql");
     try
     {
-        // 1. Drop both the tickets and comments table if they exist
-        query = getQueryFromFile("/home/msullivan/Development/GitHub/TermTix/sql/DropTables.sql");
         work.exec(query);
-
-        // 2. Re-create the tickets table
-        query = getQueryFromFile("/home/msullivan/Development/GitHub/TermTix/sql/CreateTicketsTable.sql");
-        if (query.empty())
-        {
-            std::cerr << "Failed to create tickets table\n";
-            return false;
-        }
-        work.exec(query);
-
-        // 3. Re-create the comments table
-        query = getQueryFromFile("/home/msullivan/Development/GitHub/TermTix/sql/CreateCommentsTable.sql");
-        if (query.empty())
-        {
-            std::cerr << "Failed to create comments table\n";
-            return false;
-        }
-        work.exec(query);
-
-        // 4. Commit changes to the database
         work.commit();
     }
     catch (const std::exception &e)
@@ -217,7 +195,7 @@ bool TicketManager::resetDatabase() const
     return true;
 }
 
-std::string TicketManager::getQueryFromFile(const std::string &filename)
+std::string DatabaseConnection::getQueryFromFile(const std::string &filename)
 {
     // 1. Open file
     std::ifstream infile(filename);

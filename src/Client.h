@@ -7,7 +7,7 @@
 #include <cassert>
 
 // Forward declaration(s)
-class TicketManager;
+class DatabaseConnection;
 
 struct CommandLineArgs {
     int argc = 0;
@@ -20,6 +20,11 @@ struct CommandLineArgs {
     }
 };
 
+struct LoginCredentials {
+    std::string username;
+    std::string password; // Will need to be hashed for security
+};
+
 class Client {
 public:
     Client(int argc, char **argv);
@@ -28,12 +33,14 @@ public:
 private:
     bool m_Running;
     CommandLineArgs m_Args;
-    TicketManager *m_TicketManager;
+    DatabaseConnection *m_TicketManager;
+    LoginCredentials m_Credentials;
 
 public:
     int run();
     void exit();
 
+    /* Tickets */
     void addTicket();
     void deleteTicket();
     void modifyTicket();
@@ -41,18 +48,30 @@ public:
     void takeTicket();
     void assignTicketToUser();
     void assignTicketToTeam();
-    void setDeadline();
-    void setSLA();
-
-    size_t listAllTickets();
+    void listAssignedTickets();
+    void listAllTickets();
     void viewTicket();
-    size_t viewAssignedTickets();
-    size_t viewAllTickets();
+    void viewAssignedTickets();
+    void viewAllTickets();
+    [[nodiscard]] size_t getAssignedTicketCount();
+    [[nodiscard]] size_t getOverallTicketCount();
 
+    /* Users */
+    void login();
+    void logout();
+    void registerUser();
+    void deleteUser();
+    void modifyUser();
+    void setPassword();
+    void listUsers();
+    void viewUsers();
+    [[nodiscard]] size_t getUserCount();
+
+    /* Utilities/debugging */
     void resetDatabase();
 
 private:
-    TicketManager *setupTicketManager() const;
+    DatabaseConnection *setupTicketManager();
     void handleInput(const std::string& input);
     [[nodiscard]] std::string parseConfigFile(const std::string &filename);
     [[nodiscard]] bool loadConfig(const std::string &config);

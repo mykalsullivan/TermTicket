@@ -16,8 +16,9 @@ add_executable(TermTicket
         src/Client.h
         src/Client.cpp
         src/Ticket.h
-        src/TicketManager.cpp
-        src/TicketManager.h
+        src/DatabaseConnection.cpp
+        src/DatabaseConnection.h
+        src/User.h
 )
 
 # Link the libraries
