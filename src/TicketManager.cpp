@@ -16,7 +16,8 @@ TicketManager::TicketManager(const std::string &username, const std::string &pas
                                    " port=" + std::to_string(port);
     m_DatabaseConnection = new pqxx::connection(connectionString);
 
-    if (!m_DatabaseConnection->is_open()) {
+    if (!m_DatabaseConnection->is_open())
+    {
         std::cerr << "Failed to connect to database\n";
         exit(EXIT_FAILURE);
     }
@@ -52,9 +53,21 @@ bool TicketManager::addTicket(const Ticket &ticket)
     return true;
 }
 
-bool TicketManager::deleteTicket(int ID)
+bool TicketManager::deleteTicket(int id) const
 {
-
+    pqxx::work work(*m_DatabaseConnection);
+    std::string query = "DELETE FROM tickets "
+                        "WHERE ticket_id = " + std::to_string(id) + ";";
+    try
+    {
+        work.exec(query);
+        work.commit();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what();
+        return false;
+    }
     return true;
 }
 

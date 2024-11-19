@@ -1,3 +1,4 @@
 * The program needs a way to store connection info for the last connected server. If the program fails to connect to the
   database, then it should prompt the user to connect to another server.
-* Deadlines need to be added to tickets
+* The password needs to be blank when entering it prior to authentication.
+* You need to be able to delete tickets

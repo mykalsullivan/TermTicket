@@ -18,7 +18,7 @@ private:
 public:
     // Tickets
     bool addTicket(const Ticket& ticket);
-    bool deleteTicket(int ticketID);
+    bool deleteTicket(int ticketID) const;
     bool editTicket(int ticketID, const Ticket& ticket);
     bool mergeTicket(int sourceTicketID, int targetTicketID);
     [[nodiscard]] Ticket getTicket(int ticketID);

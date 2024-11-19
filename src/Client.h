@@ -44,13 +44,16 @@ public:
     void setDeadline();
     void setSLA();
 
+    size_t listAllTickets();
     void viewTicket();
-    void viewAssignedTickets();
-    void viewAllTickets();
+    size_t viewAssignedTickets();
+    size_t viewAllTickets();
 
     void resetDatabase();
 
 private:
     TicketManager *setupTicketManager() const;
     void handleInput(const std::string& input);
+    [[nodiscard]] std::string parseConfigFile(const std::string &filename);
+    [[nodiscard]] bool loadConfig(const std::string &config);
 };

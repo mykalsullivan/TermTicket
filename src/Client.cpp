@@ -168,7 +168,22 @@ void Client::addTicket()
 
 void Client::deleteTicket()
 {
+    size_t ticketCount = listAllTickets();
 
+    if (ticketCount <= 0)
+    {
+        std::cout << "There are no tickets to delete\n";
+        return;
+    }
+
+    std::cout << "Target? [1-" << std::to_string(ticketCount) << "]: ";
+
+    int selection = -1;
+    std::cin >> selection;
+    std::cin.ignore();
+
+    // Will need exception handling
+    m_TicketManager->deleteTicket(selection - 1);
 }
 
 void Client::modifyTicket()
@@ -181,17 +196,32 @@ void Client::mergeTicket()
 
 }
 
+size_t Client::listAllTickets()
+{
+    std::vector<Ticket> tickets = m_TicketManager->getTickets();
+
+    if (tickets.empty())
+        std::cout << "There are no tickets available to view\n";
+
+    for (const auto &ticket : tickets)
+        std::cout << ticket.ticketID << ": \"" << ticket.title << "\"\n";
+
+    return tickets.size();
+}
+
+
 void Client::viewTicket()
 {
 
 }
 
-void Client::viewAssignedTickets()
+size_t Client::viewAssignedTickets()
 {
-
+    std::vector<Ticket> tickets;
+    return tickets.size();
 }
 
-void Client::viewAllTickets()
+size_t Client::viewAllTickets()
 {
     std::vector<Ticket> tickets = m_TicketManager->getTickets();
 
@@ -206,6 +236,7 @@ void Client::viewAllTickets()
                   << " -- Assigned to: " << (ticket.assignedTo) << '\n'
                   << " -- Priority: \"" << ticket.priority << "\"\n"
                   << " -- Status: \"" << ticket.status << "\"\n\n";
+    return tickets.size();
 }
 
 void Client::resetDatabase()
