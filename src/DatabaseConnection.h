@@ -46,6 +46,7 @@ public:
     std::vector<Team> getTeams();
 
     /* Utilities/debugging */
+    bool authenticate(const std::string &username, const std::string &password) const;
     bool resetDatabase() const;
 
 private:

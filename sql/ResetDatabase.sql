@@ -72,6 +72,12 @@ CREATE TABLE users
     is_active BOOLEAN DEFAULT TRUE
 );
 
+-- Create a server user as a default. Will probably need to force the user to change the password after the first login
+INSERT INTO users (username, password_hash)
+VALUES ('Administrator', 'Mpwftsi$20031911');
+
+-- CREATE authenticate_user FUNCTION HERE
+
 DROP TABLE IF EXISTS roles CASCADE;
 CREATE TABLE roles
 (

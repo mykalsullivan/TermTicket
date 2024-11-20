@@ -11,9 +11,9 @@ class DatabaseConnection;
 
 struct CommandLineArgs {
     int argc = 0;
-    char **argv;
+    char **argv = nullptr;
 
-    const char *operator[](int n) const
+    const char *operator[](const int n) const
     {
         assert(n >= 0 && n < argc && "Out of bounds");
         return argv[n];
@@ -56,9 +56,12 @@ public:
     [[nodiscard]] size_t getAssignedTicketCount();
     [[nodiscard]] size_t getOverallTicketCount();
 
-    /* Users */
+    /* Authentication */
     void login();
     void logout();
+    [[nodiscard]] bool isAuthenticated() const;
+
+    /* Users */
     void registerUser();
     void deleteUser();
     void modifyUser();

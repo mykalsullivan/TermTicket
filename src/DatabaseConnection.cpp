@@ -176,6 +176,27 @@ std::vector<Comment> DatabaseConnection::getComments(int ticketID)
     return comments;
 }
 
+bool DatabaseConnection::authenticate(const std::string &username, const std::string &password) const
+{
+    pqxx::work work(*m_DatabaseConnection);
+    std::string query = "SELECT authenticate_user($1, $2);";    // Will need to create an authenticate routine or function
+    pqxx::result result;
+
+    try
+    {
+        result = work.exec_params(query, username, password);
+        work.commit();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what();
+        return false;
+    }
+    if (!result.empty()) return true;
+    return false;
+}
+
+
 // This will need better exception handling
 bool DatabaseConnection::resetDatabase() const
 {

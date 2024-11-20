@@ -38,6 +38,8 @@ Client::~Client()
 
 DatabaseConnection *Client::setupTicketManager()
 {
+    std::string username;
+    std::string password;
     std::string hostname;
     int port = -1;
 
@@ -46,10 +48,10 @@ DatabaseConnection *Client::setupTicketManager()
         switch (c)
         {
             case 'u':
-                m_Credentials.username = optarg;
+                username = optarg;
             break;
             case 'p':
-                m_Credentials.password = optarg;
+                password = optarg;
             break;
             case 'H':
                 hostname = optarg;
@@ -66,33 +68,30 @@ DatabaseConnection *Client::setupTicketManager()
             return nullptr;
         }
 
-    std::string input;
-    if (m_Credentials.username.empty())
+    if (username.empty())
     {
         std::cout << "Username: ";
-        std::getline(std::cin, input);
-        m_Credentials.username = input;
+        std::getline(std::cin, username);
     }
-    if (m_Credentials.password.empty())
+    if (password.empty())
     {
         std::cout << "Password: ";
-        std::getline(std::cin, input);
-        m_Credentials.password = input;
+        std::getline(std::cin, password);
     }
     if (hostname.empty())
     {
         std::cout << "Hostname: ";
-        std::getline(std::cin, input);
-        hostname = input;
+        std::getline(std::cin, hostname);
     }
     if (port < 1000 || port >= 65535)
     {
         std::cout << "Port [1000-65535]: ";
+        std::string input;
         std::getline(std::cin, input);
         port = std::stoi(input);
     }
 
-    return new DatabaseConnection(m_Credentials.username, m_Credentials.password, hostname, port);
+    return new DatabaseConnection(username, password, hostname, port);
 }
 
 void Client::handleInput(const std::string& input)
@@ -151,6 +150,27 @@ void Client::handleInput(const std::string& input)
         std::cerr << "Unrecognized input \"" << input << "\"\n";
 }
 
+std::string Client::parseConfigFile(const std::string &filename)
+{
+    NO_IMPL;
+    return "";
+}
+
+bool Client::loadConfig(const std::string &config)
+{
+    NO_IMPL;
+    return false;
+}
+
+bool Client::isAuthenticated() const
+{
+    // This is a terribly insecure way of checking if the user is authenticated. Move this to the DatabaseConnection
+    if (m_Credentials.username.empty())
+        return false;
+    return true;
+}
+
+
 int Client::run()
 {
     /* 1. Set up connection */
@@ -175,21 +195,33 @@ void Client::exit()
 
 void Client::addTicket()
 {
-    Ticket ticket;
-    ticket.author = "msullivan"; // Temp
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 
+    Ticket ticket;
+
+    // 1. Set the ticket title
     std::cout << "Title [blank to cancel]: ";
     std::getline(std::cin, ticket.title);
     if (ticket.title.empty()) return;
 
+    // 2. Set the ticket status
     std::cout << "Status [blank to cancel]: ";
     std::getline(std::cin, ticket.status);
     if (ticket.title.empty()) return;
 
+    // 3. Set the ticket priority
     std::cout << "Priority [blank to cancel]: ";
     std::getline(std::cin, ticket.priority);
     if (ticket.priority.empty()) return;
 
+    // 4. Set the ticket author
+    ticket.author = m_Credentials.username;
+
+    // 5. Add the ticket to the database
     if (m_TicketManager->addTicket(ticket))
         std::cout << "Successfully created ticket\n";
     else
@@ -198,6 +230,12 @@ void Client::addTicket()
 
 void Client::deleteTicket()
 {
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
+
     size_t ticketCount = getOverallTicketCount();
     if (ticketCount <= 0)
     {
@@ -218,36 +256,71 @@ void Client::deleteTicket()
 
 void Client::modifyTicket()
 {
-
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::mergeTicket()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::takeTicket()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::assignTicketToUser()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::assignTicketToTeam()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::listAssignedTickets()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::listAllTickets()
 {
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
+
     std::vector<Ticket> tickets = m_TicketManager->getTickets();
     for (const auto &ticket : tickets)
         std::cout << ticket.ticketID << ": \"" << ticket.title << "\"\n";
@@ -257,17 +330,33 @@ void Client::listAllTickets()
 void Client::viewTicket()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::viewAssignedTickets()
 {
     // For now, this only shows all tickets. It should eventually query tickets assigned to the current user.
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
     listAllTickets();
 }
 
 void Client::viewAllTickets()
 {
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
+
     std::vector<Ticket> tickets = m_TicketManager->getTickets();
     for (const auto &ticket : tickets)
         std::cout << ticket.ticketID << ": \"" << ticket.title << "\"\n"
@@ -282,59 +371,128 @@ void Client::viewAllTickets()
 size_t Client::getAssignedTicketCount()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return -1;
+    }
     return -1;
 }
 
 size_t Client::getOverallTicketCount()
 {
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return -1;
+    }
+
     return m_TicketManager->getTickets().size();
 }
 
 void Client::login()
 {
-    NO_IMPL;
+    // 1. Prompt username
+    std::string username;
+    std::cout << "Username: ";
+    std::getline(std::cin, username);
+
+    // 2. Prompt password
+    std::string password;
+    std::cout << "Password (will eventually be hidden from terminal): ";
+    std::getline(std::cin, password);
+
+    // 3. Authenticate with the database
+    if (m_TicketManager->authenticate(username, password))
+    {
+        std::cout << "Successfully authenticated as \"" + username + "\"\n";
+        return;
+    }
+    std::cerr << "Failed to authenticate with those credentials\n";
 }
 
 void Client::logout()
 {
-    NO_IMPL;
+    if (!m_Credentials.username.empty())
+    {
+        std::cout << "You are already logged out\n";
+        return;
+    }
+    std::cout << "Logged out of account \"" << m_Credentials.username << "\"\n";
+    m_Credentials.username = "";
+    m_Credentials.password = "";
 }
 
 void Client::registerUser()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::deleteUser()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::modifyUser()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 
 void Client::setPassword()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 void Client::listUsers()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 
 void Client::viewUsers()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
 }
 
 size_t Client::getUserCount()
 {
     NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return -1;
+    }
     return -1;
 }
 
