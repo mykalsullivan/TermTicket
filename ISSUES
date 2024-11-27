@@ -1,1 +1,9 @@
-* CLI arguments do not work properly and just display the help message.
+*** Security ***
+- When the eventual transition from direct database access to client to server with database access occurs,
+  the client needs to send a plaintext password to the server and password hash should NOT be sent from the server
+
+*** Functionality ***
+-
+
+*** Structure ***
+-
