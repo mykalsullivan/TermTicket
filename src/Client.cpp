@@ -144,10 +144,12 @@ void Client::handleInput(const std::string& input)
         listUsers();
     else if (input == "view users")
         viewUsers();
+    else if (input == "current user")
+        currentUser();
     else if (input == "reset")
         resetDatabase();
     else
-        std::cerr << "Unrecognized input \"" << input << "\"\n";
+        std::cout << "Unrecognized input \"" << input << "\"\n";
 }
 
 std::string Client::parseConfigFile(const std::string &filename)
@@ -165,9 +167,9 @@ bool Client::loadConfig(const std::string &config)
 bool Client::isAuthenticated() const
 {
     // This is a terribly insecure way of checking if the user is authenticated. Move this to the DatabaseConnection
-    if (m_Credentials.username.empty())
-        return false;
-    return true;
+    if (m_TicketManager->isAuthenticated())
+        return true;
+    return false;
 }
 
 
@@ -225,7 +227,7 @@ void Client::addTicket()
     if (m_TicketManager->addTicket(ticket))
         std::cout << "Successfully created ticket\n";
     else
-        std::cerr << "Failed to create ticket\n";
+        std::cout << "Failed to create ticket\n";
 }
 
 void Client::deleteTicket()
@@ -386,12 +388,14 @@ size_t Client::getOverallTicketCount()
         std::cout << "You must login before performing this action\n";
         return -1;
     }
-
     return m_TicketManager->getTickets().size();
 }
 
 void Client::login()
 {
+    if (!m_Credentials.username.empty())
+        std::cout << "Note: You are already logged in as \"" << m_Credentials.username << "\"\n";
+
     // 1. Prompt username
     std::string username;
     std::cout << "Username: ";
@@ -406,21 +410,23 @@ void Client::login()
     if (m_TicketManager->authenticate(username, password))
     {
         std::cout << "Successfully authenticated as \"" + username + "\"\n";
+        m_Credentials.username = username;
         return;
     }
-    std::cerr << "Failed to authenticate with those credentials\n";
+    std::cout << "Failed to authenticate with those credentials\n";
 }
 
 void Client::logout()
 {
-    if (!m_Credentials.username.empty())
+    if (!isAuthenticated())
     {
-        std::cout << "You are already logged out\n";
+        std::cout << "You are not currently logged in\n";
         return;
     }
     std::cout << "Logged out of account \"" << m_Credentials.username << "\"\n";
     m_Credentials.username = "";
     m_Credentials.password = "";
+    m_TicketManager->unauthenticate();
 }
 
 void Client::registerUser()
@@ -466,18 +472,23 @@ void Client::setPassword()
 
 void Client::listUsers()
 {
-    NO_IMPL;
     if (!isAuthenticated())
     {
         std::cout << "You must login before performing this action\n";
         return;
     }
+    std::vector<User> users = m_TicketManager->getUsers();
+
+    std::cout << "--- Users ---\n";
+    std::cout << "User(s): " << users.size() << '\n';
+    for (int i = 0; i < users.size(); i++)
+        std::cout << (i + 1) << ") " << users[i].username << '\n';
+    std::cout << std::endl;
 }
 
 
 void Client::viewUsers()
 {
-    NO_IMPL;
     if (!isAuthenticated())
     {
         std::cout << "You must login before performing this action\n";
@@ -487,13 +498,22 @@ void Client::viewUsers()
 
 size_t Client::getUserCount()
 {
-    NO_IMPL;
     if (!isAuthenticated())
     {
         std::cout << "You must login before performing this action\n";
         return -1;
     }
-    return -1;
+    return m_TicketManager->getUsers().size();
+}
+
+void Client::currentUser()
+{
+    if (!isAuthenticated())
+    {
+        std::cout << "You are not current logged in\n";
+        return;
+    }
+    std::cout << "Current user: \"" << m_Credentials.username << "\"\n";
 }
 
 
@@ -502,5 +522,5 @@ void Client::resetDatabase()
     if (m_TicketManager->resetDatabase())
         std::cout << "Successfully reset the ticket database\n";
     else
-        std::cerr << "Failed to reset the ticket database\n";
+        std::cout << "Failed to reset the ticket database\n";
 }

@@ -8,7 +8,7 @@
 struct User {
     int userID;
     std::string createdAt;
-    std::string name;
+    std::string username;
     std::string passwordHash;
     std::string email;
     bool isActive;

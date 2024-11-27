@@ -15,6 +15,7 @@ public:
 
 private:
     pqxx::connection *m_DatabaseConnection;
+    bool m_Authenticated;
 
 public:
     /* Tickets */
@@ -46,7 +47,9 @@ public:
     std::vector<Team> getTeams();
 
     /* Utilities/debugging */
-    bool authenticate(const std::string &username, const std::string &password) const;
+    bool authenticate(const std::string &username, const std::string &password);
+    void unauthenticate();
+    [[nodiscard]] bool isAuthenticated() const { return m_Authenticated; }
     bool resetDatabase() const;
 
 private:

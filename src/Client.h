@@ -69,6 +69,7 @@ public:
     void listUsers();
     void viewUsers();
     [[nodiscard]] size_t getUserCount();
+    void currentUser();
 
     /* Utilities/debugging */
     void resetDatabase();

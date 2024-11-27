@@ -7,7 +7,9 @@
 #include <fstream>
 #include <sstream>
 
-DatabaseConnection::DatabaseConnection(const std::string &username, const std::string &password, const std::string &host, int port)
+DatabaseConnection::DatabaseConnection(
+    const std::string &username, const std::string &password,
+    const std::string &host, int port) : m_Authenticated(false)
 {
     std::string connectionString = "dbname=term_ticket"
                                    " user=" + username +
@@ -130,6 +132,8 @@ std::vector<Ticket> DatabaseConnection::getTickets()
     return tickets;
 }
 
+
+/* Comments */
 bool DatabaseConnection::addComment(int ticketID, const Comment &comment)
 {
 
@@ -176,24 +180,129 @@ std::vector<Comment> DatabaseConnection::getComments(int ticketID)
     return comments;
 }
 
-bool DatabaseConnection::authenticate(const std::string &username, const std::string &password) const
+/* Users */
+bool DatabaseConnection::addUser(const User &user)
+{
+
+    return false;
+}
+
+bool DatabaseConnection::deleteUser(int userID)
+{
+
+    return false;
+}
+
+bool DatabaseConnection::editUser(int userID, const User &user)
+{
+
+    return false;
+}
+
+User DatabaseConnection::getUser(int userID)
 {
     pqxx::work work(*m_DatabaseConnection);
-    std::string query = "SELECT authenticate_user($1, $2);";    // Will need to create an authenticate routine or function
+    std::string query = "SELECT * FROM users "
+                        "WHERE user_id = $1;";
+    pqxx::result result;
+
+    // Execute query
+    try
+    {
+        result = work.exec_params(query, userID);
+        work.commit();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what();
+        return {};
+    }
+
+    // Retrieve user if there is a result
+    User user {};
+    if (!result.empty())
+    {
+        user.userID = result[0]["user_id"].as<int>();
+        user.createdAt = result[0]["created_at"].as<std::string>();
+        user.username = result[0]["username"].as<std::string>();
+        user.passwordHash = result[0]["password_hash"].as<std::string>();
+        user.email = result[0]["email"].as<std::string>();
+        user.isActive = result[0]["is_active"].as<bool>();
+    }
+    return user;
+}
+
+std::vector<User> DatabaseConnection::getUsers()
+{
+    pqxx::work work(*m_DatabaseConnection);
+    std::string query = "SELECT * FROM users;";
+    pqxx::result result;
+
+    // Execute query
+    try
+    {
+        result = work.exec(query);
+        work.commit();
+
+        // Retrieve users
+        std::vector<User> users;
+        for (const auto &row : result)
+        {
+            User user {};
+            user.userID = row["user_id"].as<int>();
+            user.createdAt = row["created_at"].as<std::string>();
+            user.username = row["username"].as<std::string>();
+            user.passwordHash = row["password_hash"].as<std::string>();
+
+            if (row["email"].is_null())
+                user.email = "(not set)";
+            else
+                user.email = row["email"].as<std::string>();
+
+            user.isActive = row["is_active"].as<bool>();
+            users.emplace_back(user);
+        }
+        return users;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what();
+        return {};
+    }
+}
+
+bool DatabaseConnection::authenticate(const std::string &username, const std::string &password)
+{
+    pqxx::work work(*m_DatabaseConnection);
+    std::string query = "SELECT password_hash "
+                        "FROM users "
+                        "WHERE username = $1";    // Will need to create an authenticate routine or function
     pqxx::result result;
 
     try
     {
-        result = work.exec_params(query, username, password);
+        result = work.exec_params(query, username);
         work.commit();
+
+        if (!result.empty())
+            if (password == result[0]["password_hash"].as<std::string>())
+            {
+                m_Authenticated = true;
+                return true;
+            }
+        return false;
     }
     catch (const std::exception &e)
     {
         std::cerr << e.what();
         return false;
     }
-    if (!result.empty()) return true;
-    return false;
+}
+
+// This function is stupid and shouldn't exist
+void DatabaseConnection::unauthenticate()
+{
+    m_Authenticated = false;
 }
 
 
