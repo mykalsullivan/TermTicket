@@ -7,9 +7,9 @@
 
 struct Ticket {
     int ticketID;
-    std::string author;
     std::string createdAt;
     std::string lastUpdatedAt;
+    std::string author;
     std::string title;
     std::string status;
     std::string priority;
@@ -26,8 +26,8 @@ struct Subtask {
 };
 
 struct Comment {
-    int ticketID;
     int commentID;
+    int ticketID;
     std::string createdAt;
     std::string lastModifiedAt;
     std::string author;

@@ -8,3 +8,5 @@
 *** Structure ***
 - This program will need to be split into a server/client architecture
     - Take code over from practice chat room program to make things easier
+    - When the server starts, it will need to set up the database before use
+- Add a QueryManager class which will be responsible for executing queries and parsing SQL files

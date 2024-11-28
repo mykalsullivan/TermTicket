@@ -2,7 +2,7 @@
 // Created by msullivan on 11/18/24.
 //
 
-#include "Client.h"
+#include "OldClient.h"
 #include "DatabaseConnection.h"
 #include <iostream>
 #include <unistd.h>
@@ -23,7 +23,7 @@ void printHelpMenu()
               << "-h : Displays this help menu\n";
 }
 
-Client::Client(int argc, char **argv) : m_Running(true), m_TicketManager(nullptr)
+OldClient::OldClient(int argc, char **argv) : m_Running(true), m_TicketManager(nullptr)
 {
     m_Args.argc = argc;
     m_Args.argv = argv;
@@ -31,12 +31,12 @@ Client::Client(int argc, char **argv) : m_Running(true), m_TicketManager(nullptr
     std::cout << "TermTicket v" << V_MAJ << '.' << V_MIN << '.' << V_REV << '\n';
 }
 
-Client::~Client()
+OldClient::~OldClient()
 {
     delete m_TicketManager;
 }
 
-DatabaseConnection *Client::setupTicketManager()
+DatabaseConnection *OldClient::setupTicketManager()
 {
     std::string username;
     std::string password;
@@ -94,7 +94,7 @@ DatabaseConnection *Client::setupTicketManager()
     return new DatabaseConnection(username, password, hostname, port);
 }
 
-void Client::handleInput(const std::string& input)
+void OldClient::handleInput(const std::string& input)
 {
     if (input.empty())
         return;
@@ -152,19 +152,19 @@ void Client::handleInput(const std::string& input)
         std::cout << "Unrecognized input \"" << input << "\"\n";
 }
 
-std::string Client::parseConfigFile(const std::string &filename)
+std::string OldClient::parseConfigFile(const std::string &filename)
 {
     NO_IMPL;
     return "";
 }
 
-bool Client::loadConfig(const std::string &config)
+bool OldClient::loadConfig(const std::string &config)
 {
     NO_IMPL;
     return false;
 }
 
-bool Client::isAuthenticated() const
+bool OldClient::isAuthenticated() const
 {
     // This is a terribly insecure way of checking if the user is authenticated. Move this to the DatabaseConnection
     if (m_TicketManager->isAuthenticated())
@@ -173,7 +173,7 @@ bool Client::isAuthenticated() const
 }
 
 
-int Client::run()
+int OldClient::run()
 {
     /* 1. Set up connection */
     m_TicketManager = setupTicketManager();
@@ -190,12 +190,12 @@ int Client::run()
     return 0;
 }
 
-void Client::exit()
+void OldClient::exit()
 {
     m_Running = false;
 }
 
-void Client::addTicket()
+void OldClient::addTicket()
 {
     if (!isAuthenticated())
     {
@@ -230,7 +230,7 @@ void Client::addTicket()
         std::cout << "Failed to create ticket\n";
 }
 
-void Client::deleteTicket()
+void OldClient::deleteTicket()
 {
     if (!isAuthenticated())
     {
@@ -256,7 +256,7 @@ void Client::deleteTicket()
     m_TicketManager->deleteTicket(selection - 1);
 }
 
-void Client::modifyTicket()
+void OldClient::modifyTicket()
 {
     if (!isAuthenticated())
     {
@@ -265,17 +265,7 @@ void Client::modifyTicket()
     }
 }
 
-void Client::mergeTicket()
-{
-    NO_IMPL;
-    if (!isAuthenticated())
-    {
-        std::cout << "You must login before performing this action\n";
-        return;
-    }
-}
-
-void Client::takeTicket()
+void OldClient::mergeTicket()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -285,7 +275,7 @@ void Client::takeTicket()
     }
 }
 
-void Client::assignTicketToUser()
+void OldClient::takeTicket()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -295,7 +285,7 @@ void Client::assignTicketToUser()
     }
 }
 
-void Client::assignTicketToTeam()
+void OldClient::assignTicketToUser()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -305,7 +295,7 @@ void Client::assignTicketToTeam()
     }
 }
 
-void Client::listAssignedTickets()
+void OldClient::assignTicketToTeam()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -315,7 +305,17 @@ void Client::listAssignedTickets()
     }
 }
 
-void Client::listAllTickets()
+void OldClient::listAssignedTickets()
+{
+    NO_IMPL;
+    if (!isAuthenticated())
+    {
+        std::cout << "You must login before performing this action\n";
+        return;
+    }
+}
+
+void OldClient::listAllTickets()
 {
     if (!isAuthenticated())
     {
@@ -329,7 +329,7 @@ void Client::listAllTickets()
 }
 
 
-void Client::viewTicket()
+void OldClient::viewTicket()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -339,7 +339,7 @@ void Client::viewTicket()
     }
 }
 
-void Client::viewAssignedTickets()
+void OldClient::viewAssignedTickets()
 {
     // For now, this only shows all tickets. It should eventually query tickets assigned to the current user.
     NO_IMPL;
@@ -351,7 +351,7 @@ void Client::viewAssignedTickets()
     listAllTickets();
 }
 
-void Client::viewAllTickets()
+void OldClient::viewAllTickets()
 {
     if (!isAuthenticated())
     {
@@ -370,7 +370,7 @@ void Client::viewAllTickets()
                   << " -- Status: \"" << ticket.status << "\"\n\n";
 }
 
-size_t Client::getAssignedTicketCount()
+size_t OldClient::getAssignedTicketCount()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -381,7 +381,7 @@ size_t Client::getAssignedTicketCount()
     return -1;
 }
 
-size_t Client::getOverallTicketCount()
+size_t OldClient::getOverallTicketCount()
 {
     if (!isAuthenticated())
     {
@@ -391,7 +391,7 @@ size_t Client::getOverallTicketCount()
     return m_TicketManager->getTickets().size();
 }
 
-void Client::login()
+void OldClient::login()
 {
     if (!m_Credentials.username.empty())
         std::cout << "Note: You are already logged in as \"" << m_Credentials.username << "\"\n";
@@ -416,7 +416,7 @@ void Client::login()
     std::cout << "Failed to authenticate with those credentials\n";
 }
 
-void Client::logout()
+void OldClient::logout()
 {
     if (!isAuthenticated())
     {
@@ -429,7 +429,7 @@ void Client::logout()
     m_TicketManager->unauthenticate();
 }
 
-void Client::registerUser()
+void OldClient::registerUser()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -439,7 +439,7 @@ void Client::registerUser()
     }
 }
 
-void Client::deleteUser()
+void OldClient::deleteUser()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -449,7 +449,7 @@ void Client::deleteUser()
     }
 }
 
-void Client::modifyUser()
+void OldClient::modifyUser()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -460,7 +460,7 @@ void Client::modifyUser()
 }
 
 
-void Client::setPassword()
+void OldClient::setPassword()
 {
     NO_IMPL;
     if (!isAuthenticated())
@@ -470,7 +470,7 @@ void Client::setPassword()
     }
 }
 
-void Client::listUsers()
+void OldClient::listUsers()
 {
     if (!isAuthenticated())
     {
@@ -487,7 +487,7 @@ void Client::listUsers()
 }
 
 
-void Client::viewUsers()
+void OldClient::viewUsers()
 {
     if (!isAuthenticated())
     {
@@ -496,7 +496,7 @@ void Client::viewUsers()
     }
 }
 
-size_t Client::getUserCount()
+size_t OldClient::getUserCount()
 {
     if (!isAuthenticated())
     {
@@ -506,7 +506,7 @@ size_t Client::getUserCount()
     return m_TicketManager->getUsers().size();
 }
 
-void Client::currentUser()
+void OldClient::currentUser()
 {
     if (!isAuthenticated())
     {
@@ -517,7 +517,7 @@ void Client::currentUser()
 }
 
 
-void Client::resetDatabase()
+void OldClient::resetDatabase()
 {
     if (m_TicketManager->resetDatabase())
         std::cout << "Successfully reset the ticket database\n";

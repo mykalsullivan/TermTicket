@@ -25,10 +25,10 @@ struct LoginCredentials {
     std::string password; // Will need to be hashed for security
 };
 
-class Client {
+class OldClient {
 public:
-    Client(int argc, char **argv);
-    ~Client();
+    OldClient(int argc, char **argv);
+    ~OldClient();
 
 private:
     bool m_Running;

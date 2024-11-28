@@ -13,12 +13,26 @@ include_directories(${PQXX_INCLUDE_DIRS})
 # Create executable
 add_executable(TermTicket
         src/main.cpp
-        src/Client.h
-        src/Client.cpp
+        src/OldClient.h
+        src/OldClient.cpp
         src/Ticket.h
-        src/DatabaseConnection.cpp
-        src/DatabaseConnection.h
+        src/server/db/DatabaseConnection.cpp
+        src/server/db/DatabaseConnection.h
         src/User.h
+        src/server/db/UserManager.h
+        src/server/db/UserManager.cpp
+        src/server/db/TicketManager.h
+        src/server/db/TicketManager.cpp
+        src/server/db/AuthenticationManager.h
+        src/server/db/AuthenticationManager.cpp
+        src/server/db/QueryManager.h
+        src/server/db/QueryManager.cpp
+        src/client/Client.h
+        src/client/Client.cpp
+        src/Connection.h
+        src/Connection.cpp
+        src/server/Server.h
+        src/server/Server.cpp
 )
 
 # Link the libraries
